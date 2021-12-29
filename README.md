@@ -7,7 +7,7 @@ available which divided frenquencies by 2, 3, or 4 as well as offering
 a set of starting frequencies. This was a hardware device, it was 
 expensive[$500], and is no longer made [I have a used one from eBay!]. 
 
-My idea was to recreate this hardware device in software Python] -- I knew FFT 
+My idea was to recreate this hardware device in software [Python] -- I knew FFT 
 could do the filtering. I had an RPi4 with enough CPU power.  What I didn't realise 
 was the RPi audio was very limited and had no input at all. Also, NOBODY, 
 it seems, has created a practical realtime/continuous FFT filter. [I suspect
