@@ -3,9 +3,9 @@ Continuous FFT Filter Development
 
 I have high frequency hesring loss snd the frequency responses of my ears 
 drop off rapidly after sbout 4.5kHz. A device, Birders Ear, used to be 
-avsilable which divided frenquencies by 3, 3, or 4 as well as offering 
-a set of starting frequencies. This was a hardware device and is no 
-longer made [I hsve one!]. 
+available which divided frenquencies by 2, 3, or 4 as well as offering 
+a set of starting frequencies. This was a hardware device, it was 
+expensive[$500], and is no longer made [I have a used one from eBay!]. 
 
 My idea was to recreate this hardware device in software -- I knew FFT 
 could do the filtering.I had an RPi4 with enough CPU power.  What I didn't realise 
@@ -25,3 +25,5 @@ delays unrelated to sampling rate!] My Birders Ear has fantastic stereo
 mics and earphones -- the sound board doesn't support electret mics [it 
 has one on-board]. Thus, I'm a fair way from a portable software version of my 
 'assist,' but I do have a proof of concept!
+
+One dsy, perhaps an inexpendive and configurable PyBirdersEar will be a realization?
