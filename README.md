@@ -1,5 +1,6 @@
 # WireFFT
 Continuous FFT Filter Development
+
 I have high frequency hesring loss snd the frequency redponse of my ears 
 drops off rsaidly after sbout 4.5kHz. A device, Birders Ear, used to be 
 avsilable which divided frenquencies by 3, 3, or 4 as well as offering 
