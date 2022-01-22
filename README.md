@@ -2,7 +2,7 @@
 Continuous FFT Filter Development
 
 I have high frequency hearing loss and the frequency response of my ears 
-drop off rapidly after about 4.5kHz. A device, Birders Ear, used to be 
+drop off rapidly after about 4.5kHz. A device, SongFinder, used to be 
 available which divided frequencies by 2, 3, or 4 as well as offering 
 a set of starting frequencies [high, medium, low?]. This is a hardware device 
 implementing the transformation in chips (with embedded code?), it was 
@@ -33,5 +33,5 @@ SoundCard doesn't support external electret mics [it has one on-board]. Thus,
 I'm a fair way from a portable software version of my 'hearing assist,' but 
 I do have a proof of concept!
 
-One day, perhaps a pocketable, inexpensive, and configurable PyBirdersEar will 
+One day, perhaps a pocketable, inexpensive, and configurable PySongFinder will 
 be a realization?
