@@ -14,6 +14,7 @@ import math
 
 
 class olafft:
+    
     def __init__(self, blocksize, channels=1, masktype="hanning"):
         if math.log2(blocksize) % 2 != 0:
             Exception("Blocksize must be a power of 2.")
@@ -30,9 +31,10 @@ class olafft:
         self.outbuffer = numpy.zeros([self.blocksize + self.overlap * 2, 2])
         self.timedata = numpy.zeros([self.blocksize + self.overlap * 2, 2])
         self.channel = numpy.zeros([self.blocksize + self.overlap * 2])
-        self.freqdata = numpy.zeros([self.blocksize, 2])
-
+        self.freqdata = numpy.zeros([self.blocksize + 1, 2], dtype=numpy.csingle)
+        
         self.masktype = None
+        
         if masktype != None:
             self.masktype = masktype.lower()
         if (self.masktype == "hanning"
@@ -43,7 +45,7 @@ class olafft:
             )  
         elif self.masktype == "blackman":
             self.mask = numpy.blackman(
-                self.blocksize + self.overlap * 2)  
+            self.blocksize + self.overlap * 2)  
         else:
             Exception(
                 "Mask type, if defined, must be 'Hanning' or 'Blackman'")
@@ -51,6 +53,7 @@ class olafft:
     def rfft(self, indata):
         # because of buffering, we introduce a delay of 3 reads before output
         # is clean.
+        
         self.inbuffer[self.blocksize * 2 :] = indata  # append to inbuffer
         self.timedata = self.inbuffer[
             self.blocksize - self.overlap : 
@@ -58,16 +61,17 @@ class olafft:
         ]
 
         # expand with loop to do all channels
-        for i in range(self.channels - 1):
+        for i in range(self.channels):
             # replace timedata with inbuffer[blocksize - overlap:blocksize * 2 + overlap, :]?
             self.channel[:] = self.timedata[:, i] * self.mask
             # do fft
-            self.freqdata[:] = numpy.fft.rfft(self.channel)
-
+            self.freqdata[:, i] = numpy.fft.rfft(self.channel)
+        
         return self.freqdata
 
     def irfft(self, freqdata):
-        for i in range(self.channels - 1):
+    
+        for i in range(0, self.channels-1):
             self.channel = numpy.fft.irfft(freqdata[:, i])
             self.outbuffer[:, i] += self.channel
 
@@ -76,5 +80,36 @@ class olafft:
     
         self.outbuffer[:-self.overlap] = self.outbuffer[self.overlap:]  # left shift outbuffer
         self.outbuffer[-self.overlap:] = 0  # here, we do a add to the overlap and this zeroed area
-
         return self.outbuffer[:self.blocksize]
+    
+def main():
+    
+    ola = olafft(1024, 2, "hanning")
+    y = numpy.zeros([1024, 2])
+    for i in range(6):
+        x = numpy.linspace(0, 20, 1024)
+        y[:, 0] = y[:, 1] = numpy.sin(x)
+             
+        freqdata = ola.rfft(y)
+        outy = ola.irfft(freqdata)
+        
+    """
+    Input and output will differ since:
+        a. The Hanning filter reduces input values
+        b. My overlap at 1023 to 0 of the next 'frame'
+            was just a guess and appears to be wrong. 
+            Another possibility is the Overlap/Add is off
+            by one?
+    """
+    plt.style.use('seaborn-poster')
+    plt.figure(figsize = (8, 6))
+    plt.plot(x, y[:, 0], label = 'input')
+    plt.plot(x, outy[:, 0], label = 'output')
+    plt.ylabel('Amplitude')
+    plt.xlabel('Location (x)')
+    plt.legend()
+    plt.show()
+
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+    main()
