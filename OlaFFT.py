@@ -54,7 +54,7 @@ class olafft:
         # because of buffering, we introduce a delay of 3 reads before output
         # is clean.
         
-        self.inbuffer[self.blocksize * 2 :] = indata  # append to inbuffer
+        self.inbuffer[self.blocksize * 2:] = indata  # append to inbuffer
         self.timedata = self.inbuffer[
             self.blocksize - self.overlap : 
             self.blocksize * 2 + self.overlap, :
@@ -83,11 +83,11 @@ class olafft:
         return self.outbuffer[:self.blocksize]
     
 def main():
-    
-    ola = olafft(1024, 2, "hanning")
-    y = numpy.zeros([1024, 2])
-    for i in range(6):
-        x = numpy.linspace(0, 20, 1024)
+    BUFFERSIZE = 1024
+    ola = olafft(BUFFERSIZE, 2, "hanning")
+    y = numpy.zeros([BUFFERSIZE, 2])
+    for i in range(200):
+        x = numpy.linspace(0, 20, BUFFERSIZE)
         y[:, 0] = y[:, 1] = numpy.sin(x)
              
         freqdata = ola.rfft(y)
