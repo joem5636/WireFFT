@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """Pass input directly to output using classed OlaFFT and with filtering.
 """
+# import debugpy # needed only for debugging in threads
+
+
 import argparse
 
 import sounddevice as sd
 import numpy  # Make sure NumPy is loaded before it is used in the callback
 assert numpy  # avoid "imported but unused" message (W0611)
 import OlaFFT
-
+import Filters
 
 def int_or_str(text):
     """Helper function for argument parsing."""
@@ -39,7 +42,7 @@ parser.add_argument(
     '-c', '--channels', type=int, default=2,
     help='number of channels')
 parser.add_argument('--dtype', help='audio data type')
-parser.add_argument('--samplerate', type=float, help='sampling rate')
+parser.add_argument('--samplerate', type=float, help='sampling rate', default=44100)
 parser.add_argument('--blocksize', type=int, help='block size', default=1024)
 parser.add_argument('--latency', type=float, help='latency in seconds')
 args = parser.parse_args(remaining)
@@ -47,18 +50,20 @@ args = parser.parse_args(remaining)
 first = True
 parser.parse_args()  # needed to prevent blocksize from being 'none' in overlap computation
 blocksize = args.blocksize
+samplerate = args.samplerate
+
 freqdata = numpy.zeros([blocksize, 2])
 
 olaFFT = OlaFFT.olafft(blocksize) # define class
-olaFFT.first = True
+filter = Filters.Filters(blocksize, samplerate, lower=30, upper=4500)
 
 def callback(indata, outdata, frames, time, status):
     
+    # debugpy.debug_this_thread() # needed only for debugging in threads
     global freqdata
-    freqData = olaFFT.rfft(indata) 
-    outdata = olaFFT.irfft(freqData)
-    olaFFT.first = False
-    
+    freqData = olaFFT.rfft(indata)
+    filter.nonlinear(freqData[ : , 0]) # channel 0 
+    outdata[:] = olaFFT.irfft(freqData)    
 
 try:
     with sd.Stream(device=(args.input_device, args.output_device),
