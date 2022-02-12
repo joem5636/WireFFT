@@ -28,7 +28,7 @@ I bought an addon board for audio I/O -- Audio Injector Stereo SoundCard,
 It can improve sampling rates to 96000Hz but even at the default 44100 sampling
 delays are minimal. [USB devices are cheap but introduce intolerable delays 
 unrelated to sampling rate and are OK for development but useless in practice!] 
-My Birders Ear has fantastic stereo electret mics and Sony earphones -- the 
+My SongFinder has fantastic stereo electret mics and Sony earphones -- the 
 SoundCard doesn't support external electret mics [it has one on-board]. Thus, 
 I'm a fair way from a portable software version of my 'hearing assist,' but 
 I do have a proof of concept!
