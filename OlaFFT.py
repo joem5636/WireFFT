@@ -79,32 +79,30 @@ class olafft:
         self.inbuffer[-self.blocksize:] = 0  # not really needed for input buffer as replacement is done
     
         self.outbuffer[:-self.overlap] = self.outbuffer[self.overlap:]  # left shift outbuffer
-        self.outbuffer[-self.overlap:] = 0  # here, we do a add to the overlap and this zeroed area
+        # self.outbuffer[-self.overlap:] = 0  # here, we do a add to the overlap and this zeroed area
         return self.outbuffer[:self.blocksize]
     
 def main():
     BUFFERSIZE = 1024
-    ola = olafft(BUFFERSIZE, 2, "hanning")
+    ola = olafft(BUFFERSIZE, 2, "Hanning")
     y = numpy.zeros([BUFFERSIZE, 2])
-    for i in range(200):
-        x = numpy.linspace(0, 20, BUFFERSIZE)
-        y[:, 0] = y[:, 1] = numpy.sin(x)
-             
+    x = numpy.linspace(numpy.pi, -numpy.pi, 3*BUFFERSIZE)
+    for i in range(3):
+        
+        y[:, 0] = y[:, 1] = numpy.sin(20 * x[i*BUFFERSIZE:(i+1)*BUFFERSIZE])
+                     
         freqdata = ola.rfft(y)
         outy = ola.irfft(freqdata)
         
     """
-    Input and output will differ since:
-        a. The Hanning filter reduces input values
-        b. My overlap at 1023 to 0 of the next 'frame'
-            was just a guess and appears to be wrong. 
-            Another possibility is the Overlap/Add is off
-            by one?
+    Input and output will differ since the Hanning filter 
+    reduces input values. The reason for the apparent phase 
+    shift is not clear.
     """
     plt.style.use('seaborn-poster')
     plt.figure(figsize = (8, 6))
-    plt.plot(x, y[:, 0], label = 'input')
-    plt.plot(x, outy[:, 0], label = 'output')
+    plt.plot(x[2*BUFFERSIZE:], y[:, 0], label = 'input')
+    plt.plot(x[2*BUFFERSIZE:], outy[:, 0], label = 'output')
     plt.ylabel('Amplitude')
     plt.xlabel('Location (x)')
     plt.legend()
