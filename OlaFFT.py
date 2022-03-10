@@ -8,9 +8,9 @@ Blocksize must be a power of 2. Masktype (defaults to Hanning)
 is the masking to be used. Masks must be symmetrical and start/stop with 0; 
 hence Hanning or Blackman are currently allowed. 
 
-This class assumes stereo. If mono, copy input[:,1]=input[:,0] 
-before call. In most cases, stereo out is the same for mono or
-stereo. 
+This class assumes stereo. If mono is presented to rfft, it will be converted to 
+stereo and the output will be a "stereo" of the frequency data since, in most cases, 
+stereo out is the same for mono or stereo. 
 """
 import numpy
 import math
@@ -50,7 +50,9 @@ class olafft:
 
     def rfft(self, indata: numpy.array):
         # because of buffering, we introduce a delay of 3 reads before output
-        # is clean. indata is [:, 2]
+        # is clean. 
+        if indata.ndim == 1: # if mono, make "stereo"
+            indata = numpy.column_stack((indata, indata))
         
         self.inbuffer[self.blocksize * 2:] = indata  # append to inbuffer
         self.timedata = self.inbuffer[
@@ -90,7 +92,7 @@ def main():
     
     for i in range(3):
         
-        y[:, 0] = y[:, 1] = numpy.sin(20 * x[i*BUFFERSIZE:(i+1)*BUFFERSIZE])
+        y = numpy.sin(20 * x[i*BUFFERSIZE:(i+1)*BUFFERSIZE])
                      
         freqdata = ola.rfft(y)
         outy = ola.irfft(freqdata)
@@ -102,7 +104,7 @@ def main():
     """
     plt.style.use('seaborn-poster')
     plt.figure(figsize = (8, 6))
-    plt.plot(x[2*BUFFERSIZE:], y[:, 0], label = 'input')
+    plt.plot(x[2*BUFFERSIZE:], y, label = 'input')
     plt.plot(x[2*BUFFERSIZE:], outy[:, 0], label = 'output')
     plt.ylabel('Amplitude')
     plt.xlabel('Location (x)')

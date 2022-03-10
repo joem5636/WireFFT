@@ -17,7 +17,6 @@ import argparse
 import queue
 import sys
 import threading
-import numpy as np
 
 import sounddevice as sd
 import soundfile as sf
@@ -48,8 +47,7 @@ parser = argparse.ArgumentParser(
     parents=[parser])
 parser.add_argument(
     'filename', metavar='FILENAME',
-    help='audio file to be played back',
-    default= "./samples/blja2.wav")
+    help='audio file to be played back')
 parser.add_argument(
     '-d', '--device', type=int_or_str,
     help='output device (numeric ID or substring)')
@@ -60,18 +58,16 @@ parser.add_argument(
     '-q', '--buffersize', type=int, default=20,
     help='number of blocks used for buffering (default: %(default)s)')
 args = parser.parse_args(remaining)
-parser.parse_args()
-
 if args.blocksize == 0:
     parser.error('blocksize must not be zero')
-if args.buffersize % 2 != 0:
-    parser.error('buffersize must be a power of 2')
+if args.buffersize < 1:
+    parser.error('buffersize must be at least 1')
 
 q = queue.Queue(maxsize=args.buffersize)
 event = threading.Event()
 
-olafft = OlaFFT.olafft(args.blocksize, "Hanning")
-freqdata =np.zeros([args.blocksize, 2])
+olaFFT = OlaFFT.olafft(args.blocksize)
+
 
 def callback(outdata, frames, time, status):
     assert frames == args.blocksize
@@ -85,37 +81,32 @@ def callback(outdata, frames, time, status):
         print('Buffer is empty: increase buffersize?', file=sys.stderr)
         raise sd.CallbackAbort from e
     if len(data) < len(outdata):
-        outdata[:len(data),0] = data
-        outdata[len(data):,0].fill(0)
-        print("U", end='')
+        outdata[:len(data)] = data
+        outdata[len(data):].fill(0)
         raise sd.CallbackStop
     else:
-        freqdata = olafft.rfft(data)
-        data = olafft.irfft(freqdata)
-        outdata = data
-        print("O", end='')
+        freqdata = olaFFT.rfft(data)
+        data = olaFFT.irfft(freqdata)
+        outdata[:] = data
 
 
 try:
-    print("")
     with sf.SoundFile(args.filename) as f:
         for _ in range(args.buffersize):
-            data = f.read(args.blocksize, always_2d=True)
+            data = f.read(args.blocksize)
             if not len(data):
                 break
             q.put_nowait(data)  # Pre-fill queue
         stream = sd.OutputStream(
             samplerate=f.samplerate, blocksize=args.blocksize,
-            device=args.device, channels=2,
+            device=args.device, channels=2,  # always stereo out
             callback=callback, finished_callback=event.set)
         with stream:
             timeout = args.blocksize * args.buffersize / f.samplerate
             while len(data):
                 data = f.read(args.blocksize)
-                print("I", end='')
                 q.put(data, timeout=timeout)
             event.wait()  # Wait until playback is finished
-            print("")
 except KeyboardInterrupt:
     parser.exit('\nInterrupted by user')
 except queue.Full:
