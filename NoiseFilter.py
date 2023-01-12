@@ -54,7 +54,7 @@ class NoiseFilter(object):
     def averageNoise(self, data):
         tmpMax = 0.0
         for i in range(1, N_FFT-1):
-            self.power[i]= self.power[i] + self.alpha * (m.sqrt(pow(abs(data[i]),2)) - self.power[i])
+            self.power[i]= self.power[i] + self.alpha * (abs(data[i]) - self.power[i])
             tmpMax = max(tmpMax, self.power[i])
 
         self.maxPower = tmpMax + self.alpha * (tmpMax - self.maxPower)
@@ -64,14 +64,15 @@ class NoiseFilter(object):
 def main():
     fc = NoiseFilter(1024, 44100, 30, 4500, 12000)
 
-    
-    fc.first = True
     for i in range(0, 22050):
         data = np.random.random(1024) + np.random.random(1024) * 1j
         data[0] = 0
         fc.averageNoise(data)
     print("averaged data: ")
     print(abs(data))
+    print("filter:")
+    print (fc.power)
+    print("Max:", fc.maxPower)
     print()
 
 
