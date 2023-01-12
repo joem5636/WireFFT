@@ -11,6 +11,7 @@ import numpy  # Make sure NumPy is loaded before it is used in the callback
 assert numpy  # avoid "imported but unused" message (W0611)
 import OlaFFT
 import Filters
+import NoiseFilter
 
 def int_or_str(text):
     """Helper function for argument parsing."""
@@ -56,13 +57,18 @@ freqdata = numpy.zeros([blocksize, 2])
 
 olaFFT = OlaFFT.olafft(blocksize) # define class
 filter = Filters.Filters(blocksize, samplerate, lower=30, upper=4500)
+noiseFilter = NoiseFilter.NoiseFilter(blocksize, samplerate, lower=30, upper=4500)
+
+
 
 def callback(indata, outdata, frames, time, status):
     
     # debugpy.debug_this_thread() # needed only for debugging in threads
     global freqdata
     freqData = olaFFT.rfft(indata)
-    filter.nonlinear(freqData[ : , 0]) # channel 0 
+    freqData[0] = 0
+    noiseFilter.averageNoise(freqData[ : , 0]) # channel 0
+    filter.fold(freqData[ : , 0]) # channel 0 
     outdata[:] = olaFFT.irfft(freqData)    
 
 try:
