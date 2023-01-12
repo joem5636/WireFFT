@@ -8,6 +8,7 @@ to introduce artifacts so, hopefully, this approach will be "quieter"
 and adapt automatically. 
 """
 import numpy
+import math as m
 
 N_FFT = 1024
 SAMPLE_FREQ = 44100 # typical sampling frequency
@@ -32,7 +33,7 @@ class NoiseFilter(object):
         self.MAXBIRDFREQ = freqtobin(maxbirdfreq)
         #alpha for expotential smoothing from Wikipedia should be
         # 1/NYQUISTFREQ/sample-period 
-        self.alpha = 1.0/NYQUISTFREQ / 3.0 # average over 3 seconds?
+        self.alpha = N_FFT/SAMPLE_FREQ / 3.0 # average over 3 seconds?
         self.maxPower = 0.0
         
     # create global areas for averaging data
@@ -52,9 +53,8 @@ class NoiseFilter(object):
 
     def averageNoise(self, data):
         tmpMax = 0.0
-        data2 = 0.0
         for i in range(1, N_FFT-1):
-            self.power[i]= self.power[i] + self.alpha * (abs(data[i]) * abs(data[i]) - self.power[i])
+            self.power[i]= self.power[i] + self.alpha * (m.sqrt(pow(abs(data[i]),2)) - self.power[i])
             tmpMax = max(tmpMax, self.power[i])
 
         self.maxPower = tmpMax + self.alpha * (tmpMax - self.maxPower)
